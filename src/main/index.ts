@@ -4,7 +4,16 @@ import * as url from 'url';
 import * as EventEmitter from 'events';
 
 import {watch, FSWatcher} from 'chokidar';
+import * as virtualDom from 'virtual-dom';
+import * as convertHTMLCtor from 'html-to-vdom';
+import * as vdomAsJson from 'vdom-as-json';
+
 import {render} from './pandoc.js';
+
+const convertHTML: (html: string) => virtualDom.VText = convertHTMLCtor({
+    VNode: virtualDom['VNode'],
+    VText: virtualDom['VText']
+});
 
 
 const windows: {[id: string]: PreviewWindow} = {};
@@ -25,6 +34,8 @@ class PreviewWindow {
     private renderingInProgress = false;
     private renderingQueued = false;
     private connectionReady: Promise<void>;
+
+    private currentTree = convertHTML('<article id="main"></article>');
 
     constructor(private id: string) {
         this.frame = new BrowserWindow();
@@ -96,8 +107,12 @@ class PreviewWindow {
             if (result === 'ok') {
                 console.log(`Rendering completed in ${Date.now() - start}ms`);
 
+                const newTree = convertHTML(`<article id="main">${payload}</article>`);
+                const patch = virtualDom.diff(this.currentTree, newTree);
+                this.currentTree = newTree;
+
                 this.connectionReady.then(() => {
-                    this.index.send('main', result, payload);
+                    this.index.send('main', 'patch', vdomAsJson.toJson(patch));
                 });
             } else {
                 console.error('Error invoking pandoc:\n' + payload);
