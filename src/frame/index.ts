@@ -4,6 +4,8 @@ import {ipcRenderer} from 'electron';
 import {create, patch, VPatch, VText} from 'virtual-dom';
 import * as vdomAsJson from 'vdom-as-json';
 
+import {Message} from '../common/protocol.js';
+
 // Tells the main process we are ready
 ipcRenderer.send('main');
 
@@ -54,13 +56,17 @@ function reconcile(p: VPatch[]) {
     }]);
 }
 
-ipcRenderer.on('main', (event, result: string, payload?: any) => {
-    switch (result) {
+const defaultTitle = document.title;
+
+ipcRenderer.on('main', (event, message: Message) => {
+    switch (message.type) {
         case 'patch':
-            reconcile(vdomAsJson.fromJson(payload));
+            reconcile(vdomAsJson.fromJson(message.patch));
             break;
         case 'error':
-            console.error(payload);
+            console.error(message.output);
             break;
+        case 'filename':
+            document.title = message.basename || defaultTitle;
     }
 });

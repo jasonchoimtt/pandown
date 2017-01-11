@@ -11,6 +11,9 @@ function firstLoadHandler() {
     // Extract and send the webview id to the main process
     const webviewId = webview.getWebContents().id;
     ipcRenderer.send(`webview-handshake:${currentId}`, webviewId);
-
-    webview.openDevTools();
 }
+
+webview.addEventListener('page-title-updated', (event) => {
+    if (event.explicitSet)
+        document.title = event.title;
+});
