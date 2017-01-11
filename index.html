@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+<head>
+    <meta encoding="utf-8">
+    <title>Pandown</title>
+    <style>
+        webview {
+            position: fixed;
+            top: 0; bottom: 0;
+            left: 0; right: 0;
+        }
+    </style>
+</head>
+<body>
+    <webview src="./frame.html" preload="./dist/renderer/frame_preload.js"></webview>
+    <script src="./dist/renderer/index.js"></script>
+</body>
+</html>

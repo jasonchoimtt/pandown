@@ -1,0 +1,50 @@
+body {
+    font-family: "PT Serif", "Droid Serif", serif;
+    max-width: 600px;
+    margin: 0 auto 100vh auto;
+}
+article { margin: 0 16px; }
+h1 { font-size: 28px; }
+a, a:hover, a:active, a:visited {
+    text-decoration: none;
+}
+a:hover, a:active { color: #f81; }
+a, a:visited { color: #25b; }
+.title { text-align: center; }
+.author { text-align: center; font-size: 20px; }
+
+#TOC {
+    display: none;
+    position: fixed;
+    top: 24px; bottom: 0; left: 0;
+    width: 320px;
+    background: #eee;
+
+    overflow-y: auto;
+    z-index: 999;
+}
+#TOC ul { padding-left: 24px; }
+#TOC > ul {
+    margin: 8px 24px;
+    list-style: none;
+    padding-left: 0;
+}
+
+#toc-toggle.open {
+    width: 320px;
+}
+#toc-toggle {
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 1000;
+
+    width: 80px; height: 24px; box-sizing: border-box;
+    line-height: 12px;
+    padding: 6px 4px 6px 24px;
+
+    cursor: pointer;
+    color: white;
+    background-color: #25b;
+
+    user-select: none;
+}
