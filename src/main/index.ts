@@ -1,5 +1,5 @@
 import * as path from 'path';
-import {app, dialog, ipcMain, webContents, BrowserWindow} from 'electron';
+import {app, dialog, ipcMain, webContents, BrowserWindow, Menu} from 'electron';
 import * as url from 'url';
 import * as EventEmitter from 'events';
 import * as fs from 'fs';
@@ -10,6 +10,7 @@ import * as convertHTMLCtor from 'html-to-vdom';
 import * as vdomAsJson from 'vdom-as-json';
 
 import {render} from './pandoc.js';
+import {createApplicationMenu} from './menu.js';
 import {Message} from '../common/protocol.js';
 
 const convertHTML: (html: string) => virtualDom.VText = convertHTMLCtor({
@@ -18,7 +19,8 @@ const convertHTML: (html: string) => virtualDom.VText = convertHTMLCtor({
 });
 
 
-const windows: PreviewWindow[] = []
+const windows: {[id: number]: PreviewWindow} = {};
+let windowCount = 0;
 
 const mainChannel = new EventEmitter();
 ipcMain.on('main', (event, ...args) => {
@@ -29,6 +31,7 @@ class PreviewWindow {
     filename: string | null;
     private renderer: Electron.BrowserWindow;
     private frame: Electron.WebContents;
+    private id: number;
 
     private renderedHtml: string | null;
 
@@ -40,14 +43,16 @@ class PreviewWindow {
     private currentTree = convertHTML('<article id="main"></article>');
 
     constructor() {
-        windows.push(this);
-
-        this.renderer = new BrowserWindow();
+        this.renderer = new BrowserWindow({width: 700, height: 768});
         this.renderer.loadURL(url.format({
             pathname: path.join(__dirname, '../../index.html'),
             protocol: 'file:',
             slashes: true
         }));
+
+        this.id = this.renderer.id;
+        windows[this.id] = this;
+        windowCount += 1;
 
         let connectionReadyResolve: () => void;
         this.connectionReady = new Promise<void>(r => connectionReadyResolve = r);
@@ -84,6 +89,9 @@ class PreviewWindow {
         });
         if (process.platform === 'darwin')
             this.renderer.setRepresentedFilename(this.filename);
+
+        if (process.platform === 'win32' || process.platform === 'linux')
+            app.addRecentDocument(this.filename);
     }
 
     private onConnect() {
@@ -147,6 +155,17 @@ class PreviewWindow {
             this.renderer.setRepresentedFilename('');
     }
 
+    onMenuClick(menuItem: Electron.MenuItem, event: Event) {
+        switch (menuItem.label) {
+            case 'Toggle Developer Tools':
+                this.frame.toggleDevTools();
+                break;
+            case 'Close Window':
+                this.renderer.close();
+                break;
+        }
+    }
+
     private onClosed() {
         // Disable sending new messages
         this.connectionReady = new Promise<void>(() => {});
@@ -154,9 +173,8 @@ class PreviewWindow {
             this.unload();
 
         // Remove reference so that everything will be garbage collected
-        const index = windows.indexOf(this);
-        if (index !== -1)
-            windows.splice(index, 1);
+        delete windows[this.id];
+        windowCount -= 1;
     }
 }
 
@@ -185,6 +203,7 @@ if (app.makeSingleInstance((argv, wd) => launch(argv.slice(2), wd)))
     app.quit();
 
 app.on('ready', () => {
+    Menu.setApplicationMenu(createApplicationMenu(onMenuClickHandler));
     launch(process.argv.slice(2), process.cwd());
 });
 
@@ -193,7 +212,23 @@ app.on('window-all-closed', () => {
         app.quit();
 });
 
-app.on('activate', event => {
-    if (process.platform === 'darwin' && !windows.length)
+app.on('activate', () => {
+    if (process.platform === 'darwin' && !windowCount)
         launchWithDialog();
 });
+
+app.on('open-file', (event, path) => {
+    launch([path], process.cwd());
+});
+
+function onMenuClickHandler(menuItem: Electron.MenuItem, win: Electron.BrowserWindow,
+                            event: any) {
+    switch (menuItem.label) {
+        case 'Open File…':
+            launchWithDialog();
+            break;
+        default:
+            windows[win.id].onMenuClick(menuItem, event);
+            break;
+    }
+}
