@@ -5,9 +5,12 @@
         "noImplicitAny": false,
         "sourceMap": false,
         "rootDir": "src",
-        "outDir": "dist",
+        "outDir": "lib",
         "jsx": "react",
         "strictNullChecks": true,
         "lib": ["DOM", "ES5", "ES2015.Promise"]
-    }
+    },
+    "include": [
+        "src"
+    ]
 }

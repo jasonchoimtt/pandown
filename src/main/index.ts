@@ -43,9 +43,14 @@ class PreviewWindow {
     private currentTree = convertHTML('<article id="main"></article>');
 
     constructor() {
-        this.renderer = new BrowserWindow({width: 700, height: 768});
+        this.renderer = new BrowserWindow({
+            width: 700,
+            height: 768,
+            minWidth: 300,
+            minHeight: 200
+        });
         this.renderer.loadURL(url.format({
-            pathname: path.join(__dirname, '../../index.html'),
+            pathname: path.resolve(__dirname, '../renderer/index.html'),
             protocol: 'file:',
             slashes: true
         }));
@@ -157,11 +162,8 @@ class PreviewWindow {
 
     onMenuClick(menuItem: Electron.MenuItem, event: Event) {
         switch (menuItem.label) {
-            case 'Toggle Developer Tools':
+            case 'Toggle Developer Tools (Frame)':
                 this.frame.toggleDevTools();
-                break;
-            case 'Close Window':
-                this.renderer.close();
                 break;
         }
     }
@@ -202,9 +204,13 @@ function launchWithDialog() {
 if (app.makeSingleInstance((argv, wd) => launch(argv.slice(2), wd)))
     app.quit();
 
+let readyPromiseResolve: () => void;
+const readyPromise = new Promise(r => readyPromiseResolve = r);
+
 app.on('ready', () => {
     Menu.setApplicationMenu(createApplicationMenu(onMenuClickHandler));
     launch(process.argv.slice(2), process.cwd());
+    readyPromiseResolve();
 });
 
 app.on('window-all-closed', () => {
@@ -218,7 +224,7 @@ app.on('activate', () => {
 });
 
 app.on('open-file', (event, path) => {
-    launch([path], process.cwd());
+    readyPromise.then(() => launch([path], process.cwd()));
 });
 
 function onMenuClickHandler(menuItem: Electron.MenuItem, win: Electron.BrowserWindow,
@@ -228,7 +234,8 @@ function onMenuClickHandler(menuItem: Electron.MenuItem, win: Electron.BrowserWi
             launchWithDialog();
             break;
         default:
-            windows[win.id].onMenuClick(menuItem, event);
+            if (win && windows[win.id])
+                windows[win.id].onMenuClick(menuItem, event);
             break;
     }
 }

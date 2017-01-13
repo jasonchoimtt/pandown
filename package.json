@@ -1,13 +1,17 @@
 {
   "name": "pandown",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "productName": "Pandown",
+  "version": "1.0.0-dev",
+  "description": "Pandown Markdown preview in HTML",
+  "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": {
+    "name": "Jason Choi",
+    "email": "jasonchoi.mtt@gmail.com"
+  },
   "license": "ISC",
   "devDependencies": {
     "@types/chokidar": "^1.4.31",
@@ -16,6 +20,8 @@
     "@types/node": "^7.0.0",
     "@types/systemjs": "^0.19.33",
     "electron": "^1.4.14",
+    "electron-packager": "^8.5.0",
+    "gulp": "^3.9.1",
     "typescript": "^2.1.4"
   },
   "dependencies": {

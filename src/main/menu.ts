@@ -10,7 +10,6 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
             submenu: [
                 { label: 'Open File…', accelerator: 'Cmd+O', click: onClick },
                 { type: 'separator' },
-                { label: 'Close Window', accelerator: 'Cmd+W', click: onClick }
             ]
         },
         {
@@ -31,9 +30,14 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
             label: 'View',
             submenu: [
                 {
-                    label: 'Toggle Developer Tools',
+                    label: 'Toggle Developer Tools (Frame)',
                     accelerator: 'CmdOrCtrl+Alt+I',
                     click: onClick
+                },
+                {
+                    label: 'Toggle Developer Tools (Renderer)',
+                    accelerator: 'CmdOrCtrl+Alt+J',
+                    role: 'toggledevtools'
                 },
                 { type: 'separator' },
                 { role: 'resetzoom' },
