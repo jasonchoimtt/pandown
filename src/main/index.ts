@@ -95,8 +95,12 @@ class PreviewWindow {
         if (process.platform === 'darwin')
             this.renderer.setRepresentedFilename(this.filename);
 
-        if (process.platform === 'win32' || process.platform === 'linux')
+        if (['win32', 'linux', 'darwin'].indexOf(process.platform) !== -1)
             app.addRecentDocument(this.filename);
+    }
+
+    focus() {
+        this.renderer.focus();
     }
 
     private onConnect() {
@@ -192,8 +196,18 @@ class PreviewWindow {
 function launch(files: string[], workingDirectory: string) {
     for (const rel of files) {
         const filename = path.resolve(workingDirectory, rel);
-        const pw = new PreviewWindow();
-        pw.load(filename);
+        let opened = false;
+        for (const key of Object.keys(windows)) {
+            if (windows[key].filename === filename) {
+                windows[key].focus();
+                opened = true;
+                break;
+            }
+        }
+        if (!opened) {
+            const pw = new PreviewWindow();
+            pw.load(filename);
+        }
     }
 }
 
