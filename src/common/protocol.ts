@@ -15,4 +15,8 @@ export interface MessageFilename {
     basename: string | null;
 }
 
-export type Message = MessagePatch | MessageError | MessageFilename;
+export interface MessageClear {
+    type: 'clear';
+}
+
+export type Message = MessagePatch | MessageError | MessageFilename | MessageClear;

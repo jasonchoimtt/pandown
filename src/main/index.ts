@@ -151,6 +151,12 @@ class PreviewWindow {
         });
     }
 
+    reload() {
+        this.queueRendering();
+        this.currentTree = defaultTree;
+        this.sendToFrame({type: 'clear'});
+    }
+
     unload() {
         this.filename = null;
         this.renderingQueued = false;
@@ -164,6 +170,9 @@ class PreviewWindow {
         switch (menuItem.label) {
             case 'Toggle Developer Tools (Frame)':
                 this.frame.toggleDevTools();
+                break;
+            case 'Reload':
+                this.reload();
                 break;
         }
     }

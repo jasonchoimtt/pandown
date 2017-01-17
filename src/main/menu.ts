@@ -40,6 +40,12 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
                     role: 'toggledevtools'
                 },
                 { type: 'separator' },
+                {
+                    label: 'Reload',
+                    accelerator: 'CmdOrCtrl+R',
+                    click: onClick
+                },
+                { type: 'separator' },
                 { role: 'resetzoom' },
                 { role: 'zoomin' },
                 { role: 'zoomout' },

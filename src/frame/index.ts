@@ -68,5 +68,8 @@ ipcRenderer.on('main', (event, message: Message) => {
             break;
         case 'filename':
             document.title = message.basename || defaultTitle;
+            break;
+        case 'clear':
+            main.innerHTML = '';
     }
 });
