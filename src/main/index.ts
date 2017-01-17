@@ -1,22 +1,17 @@
 import * as path from 'path';
-import {app, dialog, ipcMain, webContents, BrowserWindow, Menu} from 'electron';
+import {app, dialog, ipcMain, shell, webContents, BrowserWindow, Menu} from 'electron';
 import * as url from 'url';
 import * as EventEmitter from 'events';
 import * as fs from 'fs';
 
 import {watch, FSWatcher} from 'chokidar';
 import * as virtualDom from 'virtual-dom';
-import * as convertHTMLCtor from 'html-to-vdom';
 import * as vdomAsJson from 'vdom-as-json';
 
 import {render} from './pandoc.js';
 import {createApplicationMenu} from './menu.js';
+import {processHTML} from './html.js';
 import {Message} from '../common/protocol.js';
-
-const convertHTML: (html: string) => virtualDom.VText = convertHTMLCtor({
-    VNode: virtualDom['VNode'],
-    VText: virtualDom['VText']
-});
 
 
 const windows: {[id: number]: PreviewWindow} = {};
@@ -26,6 +21,8 @@ const mainChannel = new EventEmitter();
 ipcMain.on('main', (event, ...args) => {
     mainChannel.emit(String(event.sender.id), ...args);
 });
+
+const defaultTree = processHTML('<article id="main"></article>', '');
 
 class PreviewWindow {
     filename: string | null;
@@ -40,7 +37,7 @@ class PreviewWindow {
     private renderingQueued = false;
     private connectionReady: Promise<void>;
 
-    private currentTree = convertHTML('<article id="main"></article>');
+    private currentTree = defaultTree;
 
     constructor() {
         this.renderer = new BrowserWindow({
@@ -105,6 +102,11 @@ class PreviewWindow {
 
     private onConnect() {
         mainChannel.on(String(this.frame.id), this.onMessage.bind(this));
+
+        this.frame.on('will-navigate', (event, url) => {
+            event.preventDefault();
+            shell.openExternal(url);
+        })
     }
 
     private onMessage() {
@@ -135,7 +137,8 @@ class PreviewWindow {
             if (result === 'ok') {
                 console.log(`Rendering completed in ${Date.now() - start}ms`);
 
-                const newTree = convertHTML(`<article id="main">${payload}</article>`);
+                const newTree = processHTML(
+                    `<article id="main">${payload}</article>`, this.filename);
                 const patch = virtualDom.diff(this.currentTree, newTree);
                 this.currentTree = newTree;
 
@@ -173,7 +176,7 @@ class PreviewWindow {
     onMenuClick(menuItem: Electron.MenuItem, event: Event) {
         switch (menuItem.label) {
             case 'Toggle Developer Tools (Frame)':
-                this.frame.toggleDevTools();
+                this.connectionReady.then(() => this.frame.toggleDevTools());
                 break;
             case 'Reload':
                 this.reload();
