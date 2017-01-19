@@ -4,19 +4,13 @@ export interface MessagePatch {
     patch: string; // Encoded JSON of the VPatch
 }
 
-export interface MessageError {
-    type: 'error';
-    output: string; // Error output
-}
-
-export interface MessageFilename {
-    type: 'filename';
-    filename: string | null;
-    basename: string | null;
+export interface MessageState {
+    type: 'state';
+    patch: Object;
 }
 
 export interface MessageClear {
     type: 'clear';
 }
 
-export type Message = MessagePatch | MessageError | MessageFilename | MessageClear;
+export type Message = MessagePatch | MessageState | MessageClear;

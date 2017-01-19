@@ -49,3 +49,5 @@ export function processHTML(payload: string, filename: string): VNode {
 
     return tree;
 }
+
+export const defaultTree = processHTML('<article id="main"></article>', '');

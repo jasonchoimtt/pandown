@@ -3,11 +3,20 @@
 import {ipcRenderer} from 'electron';
 import {create, patch, VPatch, VText} from 'virtual-dom';
 import * as vdomAsJson from 'vdom-as-json';
+import {create as createJSONDiffPatch} from 'jsondiffpatch';
 
 import {Message} from '../common/protocol.js';
+import {defaultFrameState, FrameState} from './state.js';
+
+const JSONDiffPatch: {
+    patch: (src: Object, diff: Object) => void
+} = createJSONDiffPatch();
 
 // Tells the main process we are ready
 ipcRenderer.send('main');
+
+
+const state: FrameState = defaultFrameState;
 
 
 // Set up table of contents toggle
@@ -63,13 +72,17 @@ ipcRenderer.on('main', (event, message: Message) => {
         case 'patch':
             reconcile(vdomAsJson.fromJson(message.patch));
             break;
-        case 'error':
-            console.error(message.output);
-            break;
-        case 'filename':
-            document.title = message.basename || defaultTitle;
+        case 'state':
+            JSONDiffPatch.patch(state.common, message.patch);
+            runStateHooks();
             break;
         case 'clear':
             main.innerHTML = '';
     }
 });
+
+function runStateHooks() {
+    document.title = state.common.basename || defaultTitle;
+    if (state.common.error)
+        console.error(state.common.error);
+}

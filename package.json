@@ -29,6 +29,7 @@
     "chokidar": "^1.6.1",
     "fsevents": "^1.0.17",
     "html-to-vdom": "^0.7.0",
+    "jsondiffpatch": "^0.2.4",
     "mathjax": "^2.7.0",
     "systemjs": "^0.19.41",
     "vdom-as-json": "^1.0.10",

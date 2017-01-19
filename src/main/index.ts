@@ -7,14 +7,22 @@ import * as fs from 'fs';
 import {watch, FSWatcher} from 'chokidar';
 import * as virtualDom from 'virtual-dom';
 import * as vdomAsJson from 'vdom-as-json';
+import {create as createJSONDiffPatch} from 'jsondiffpatch';
 
 import {render} from './pandoc.js';
 import {createApplicationMenu} from './menu.js';
 import {processHTML} from './html.js';
+import {MainState, defaultMainState} from './state.js';
+import {defaultTree} from './html.js';
 import {Message} from '../common/protocol.js';
 
 
-const windows: {[id: number]: PreviewWindow} = {};
+const JSONDiffPatch: {
+    diff: (src: Object, dest: Object) => Object
+} = createJSONDiffPatch();
+
+
+const windows: {[id: string]: PreviewWindow} = {};
 let windowCount = 0;
 
 const mainChannel = new EventEmitter();
@@ -22,22 +30,14 @@ ipcMain.on('main', (event, ...args) => {
     mainChannel.emit(String(event.sender.id), ...args);
 });
 
-const defaultTree = processHTML('<article id="main"></article>', '');
-
 class PreviewWindow {
-    filename: string | null;
+    private state: MainState;
     private renderer: Electron.BrowserWindow;
     private frame: Electron.WebContents;
     private id: number;
 
-    private renderedHtml: string | null;
-
     private watcher: FSWatcher;
-    private renderingInProgress = false;
-    private renderingQueued = false;
     private connectionReady: Promise<void>;
-
-    private currentTree = defaultTree;
 
     constructor() {
         this.renderer = new BrowserWindow({
@@ -73,31 +73,16 @@ class PreviewWindow {
         this.connectionReady.then(this.onConnect.bind(this));
 
         this.renderer.on('close', this.onClosed.bind(this));
-    }
 
-    load(filename: string) {
-        if (this.filename)
-            this.unload();
-        this.filename = filename;
-
-        this.watcher = watch(filename);
-        this.watcher.on('change', this.queueRendering.bind(this));
-
-        this.queueRendering();
-        this.sendToFrame({
-            type: 'filename',
-            filename: this.filename,
-            basename: path.basename(this.filename)
-        });
-        if (process.platform === 'darwin')
-            this.renderer.setRepresentedFilename(this.filename);
-
-        if (['win32', 'linux', 'darwin'].indexOf(process.platform) !== -1)
-            app.addRecentDocument(this.filename);
+        this.state = defaultMainState;
     }
 
     focus() {
         this.renderer.focus();
+    }
+
+    getFilename() {
+        return this.state.common.filename;
     }
 
     private onConnect() {
@@ -112,44 +97,15 @@ class PreviewWindow {
     private onMessage() {
     }
 
-    private queueRendering() {
-        if (!this.renderingInProgress) {
-            this.render();
-        } else if (!this.renderingQueued) {
-            console.log('Queued rendering.');
-            this.renderingQueued = true;
-        }
-    }
+    private onClosed() {
+        // Disable sending new messages
+        this.connectionReady = new Promise<void>(() => {});
+        if (this.state.common.filename)
+            this.unload();
 
-    private async render() {
-        this.renderingInProgress = true;
-        do {
-            this.renderingQueued = false;
-
-            const filename = this.filename!;
-            console.log('Rendering...');
-            const start = Date.now();
-            const {result, payload} = await render(filename);
-
-            // Make sure the file has not been unloaded
-            if (this.filename !== filename) continue;
-
-            if (result === 'ok') {
-                console.log(`Rendering completed in ${Date.now() - start}ms`);
-
-                const newTree = processHTML(
-                    `<article id="main">${payload}</article>`, this.filename);
-                const patch = virtualDom.diff(this.currentTree, newTree);
-                this.currentTree = newTree;
-
-                this.sendToFrame({type: 'patch', patch: vdomAsJson.toJson(patch)});
-            } else {
-                console.error('Error invoking pandoc:\n' + payload);
-
-                this.sendToFrame({type: 'error', output: payload});
-            }
-        } while (this.renderingQueued);
-        this.renderingInProgress = false;
+        // Remove reference so that everything will be garbage collected
+        delete windows[this.id];
+        windowCount -= 1;
     }
 
     private sendToFrame(message: Message) {
@@ -158,17 +114,95 @@ class PreviewWindow {
         });
     }
 
+    private dispatch(fn: (state: MainState) => MainState) {
+        const oldState = this.state;
+        const newState = fn(this.state);
+        this.sendToFrame({
+            type: 'state',
+            patch: JSONDiffPatch.diff(oldState.common, newState.common)
+        });
+        this.state = newState;
+    }
+
+    ////////////////////////////////////////////////////////
+    // Application domain stuff
+    ////////////////////////////////////////////////////////
+
+    load(filename: string) {
+        if (this.state.common.filename)
+            this.unload();
+
+        this.dispatch(state => ({
+            ...state,
+            common: {...state.common, filename, basename: path.basename(filename)}
+        }));
+
+        this.watcher = watch(filename);
+        this.watcher.on('change', this.queueRendering.bind(this));
+        this.queueRendering();
+
+        if (process.platform === 'darwin')
+            this.renderer.setRepresentedFilename(filename);
+
+        if (['win32', 'linux', 'darwin'].indexOf(process.platform) !== -1)
+            app.addRecentDocument(filename);
+    }
+
+    private queueRendering() {
+        if (!this.state.common.rendering) {
+            this.render();
+        } else if (!this.state.renderingQueued) {
+            console.log('Queued rendering.');
+            this.dispatch(state => ({...state, renderingQueued: true}));;
+        }
+    }
+
+    private async render() {
+        this.dispatch(state => ({...state, common: {...state.common, rendering: true}}));
+        do {
+            this.dispatch(state => ({...state, renderingQueued: false}));
+
+            const filename = this.state.common.filename;
+            if (!filename)
+                throw new Error('filename is null');
+            console.log('Rendering...');
+            const start = Date.now();
+            const {result, payload} = await render(filename);
+
+            // Make sure the file has not been unloaded
+            if (this.state.common.filename !== filename) continue;
+
+            if (result === 'ok') {
+                const newTree = processHTML(
+                    `<article id="main">${payload}</article>`, filename);
+                const patch = virtualDom.diff(this.state.currentTree, newTree);
+                this.dispatch(state => ({...state, currentTree: newTree}));
+
+                this.sendToFrame({type: 'patch', patch: vdomAsJson.toJson(patch)});
+                this.dispatch(state => ({...state, common: {...state.common, error: null}}));
+            } else {
+                console.error('Error invoking pandoc:\n' + payload);
+
+                this.dispatch(state => ({...state, common: {...state.common, error: payload}}));
+            }
+        } while (this.state.renderingQueued);
+        this.dispatch(state => ({...state, common: {...state.common, rendering: false}}));
+    }
+
     reload() {
         this.queueRendering();
-        this.currentTree = defaultTree;
+        this.dispatch(state => ({...state, currentTree: defaultTree}));
         this.sendToFrame({type: 'clear'});
     }
 
     unload() {
-        this.filename = null;
-        this.renderingQueued = false;
+        this.dispatch(state => ({
+            ...state,
+            renderingQueued: false,
+            common: {...state.common, filename: null, basename: null}
+        }));
+
         this.watcher.close();
-        this.sendToFrame({type: 'filename', filename: null, basename: null});
         if (process.platform === 'darwin')
             this.renderer.setRepresentedFilename('');
     }
@@ -183,17 +217,6 @@ class PreviewWindow {
                 break;
         }
     }
-
-    private onClosed() {
-        // Disable sending new messages
-        this.connectionReady = new Promise<void>(() => {});
-        if (this.filename)
-            this.unload();
-
-        // Remove reference so that everything will be garbage collected
-        delete windows[this.id];
-        windowCount -= 1;
-    }
 }
 
 function launch(files: string[], workingDirectory: string) {
@@ -201,7 +224,7 @@ function launch(files: string[], workingDirectory: string) {
         const filename = path.resolve(workingDirectory, rel);
         let opened = false;
         for (const key of Object.keys(windows)) {
-            if (windows[key].filename === filename) {
+            if (windows[key].getFilename() === filename) {
                 windows[key].focus();
                 opened = true;
                 break;
