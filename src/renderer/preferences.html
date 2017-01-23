@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+    <meta encoding="utf-8">
+    <title>Preferences</title>
+    <style>
+        body {
+            font-size: 14px;
+            font-family: "Helvetica", sans-serif;
+            background-color: #eee;
+            margin: 16px 16px;
+        }
+        input, textarea {
+            display: block;
+            width: 100%;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background: white;
+            line-height: 28px;
+        }
+        .mono {
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <form id="form">
+        <p>
+            <label>Pandoc binary</label>
+            <input id="pandoc" class="mono" autofocus>
+        </p>
+        <p>
+            <label>Extra arguments (line separated)</label>
+            <textarea id="extraArgs" class="mono"></textarea>
+        </p>
+        <p>
+            <input type="submit" value="Save">
+        </p>
+    </form>
+    <script src="./preferences.js"></script>
+</body>
+</html>

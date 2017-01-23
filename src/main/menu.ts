@@ -5,6 +5,28 @@ export type OnMenuClickHandler =
 
 export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Menu {
     const template: any[] = [
+        ...(process.platform === 'darwin' ? [
+            {
+                label: app.getName(),
+                submenu: [
+                    { role: 'about' },
+                    { type: 'separator' },
+                    {
+                        label: 'Preferences…',
+                        accelerator: 'CmdOrCtrl+,',
+                        click: onClick
+                    },
+                    { type: 'separator' },
+                    { role: 'services', submenu: [] },
+                    { type: 'separator' },
+                    { role: 'hide' },
+                    { role: 'hideothers' },
+                    { role: 'unhide' },
+                    { type: 'separator' },
+                    { role: 'quit' }
+                ]
+            }
+        ] : []),
         {
             label: 'File',
             submenu: [
@@ -23,7 +45,22 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
                 { role: 'paste' },
                 { role: 'pasteandmatchstyle' },
                 { role: 'delete' },
-                { role: 'selectall' }
+                { role: 'selectall' },
+                { type: 'separator' },
+                ...(process.platform === 'darwin' ? [
+                    {
+                        label: 'Speech',
+                        submenu: [
+                            { role: 'startspeaking' },
+                            { role: 'stopspeaking' }
+                        ]
+                    }
+                ] : [
+                    {
+                        label: 'Preferences…',
+                        click: onClick
+                    }
+                ])
             ]
         },
         {
@@ -62,32 +99,5 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
         }
     ];
 
-    if (process.platform === 'darwin') {
-        template.unshift({
-            label: app.getName(),
-            submenu: [
-                { role: 'about' },
-                { type: 'separator' },
-                { role: 'services', submenu: [] },
-                { type: 'separator' },
-                { role: 'hide' },
-                { role: 'hideothers' },
-                { role: 'unhide' },
-                { type: 'separator' },
-                { role: 'quit' }
-            ]
-        });
-        // Edit menu.
-        template[2].submenu.push(
-            { type: 'separator' },
-            {
-                label: 'Speech',
-                submenu: [
-                    { role: 'startspeaking' },
-                    { role: 'stopspeaking' }
-                ]
-            }
-        );
-    };
     return Menu.buildFromTemplate(template);
 }

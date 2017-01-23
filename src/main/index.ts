@@ -15,6 +15,7 @@ import {processHTML} from './html.js';
 import {MainState, defaultMainState} from './state.js';
 import {defaultTree} from './html.js';
 import {Message} from '../common/protocol.js';
+import {getConfig, setConfig, Config} from './config.js';
 
 
 const JSONDiffPatch: {
@@ -25,10 +26,18 @@ const JSONDiffPatch: {
 const windows: {[id: string]: PreviewWindow} = {};
 let windowCount = 0;
 
+let prefWindow: Electron.BrowserWindow | null = null;
+
 const mainChannel = new EventEmitter();
 ipcMain.on('main', (event, ...args) => {
     mainChannel.emit(String(event.sender.id), ...args);
 });
+
+function updateConfig(config: Config) {
+    setConfig(config);
+    for (const key of Object.keys(windows))
+        windows[key].setConfig(config);
+}
 
 class PreviewWindow {
     private state: MainState;
@@ -75,6 +84,7 @@ class PreviewWindow {
         this.renderer.on('close', this.onClosed.bind(this));
 
         this.state = defaultMainState;
+        this.setConfig(getConfig());
     }
 
     focus() {
@@ -83,6 +93,10 @@ class PreviewWindow {
 
     getFilename() {
         return this.state.common.filename;
+    }
+
+    setConfig(config: Config) {
+        this.dispatch(state => ({...state, common: {...state.common, config: config}}));
     }
 
     private onConnect() {
@@ -250,6 +264,24 @@ function launchWithDialog() {
     });
 }
 
+function showPreferences() {
+    if (prefWindow) return;
+    prefWindow = new BrowserWindow({width: 400, height: 500});
+    prefWindow.loadURL(url.format({
+        pathname: path.resolve(__dirname, '../renderer/preferences.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
+    prefWindow.webContents.on('did-finish-load', () => {
+        prefWindow!.webContents.send('config', getConfig());
+    })
+    prefWindow.on('closed', () => prefWindow = null);
+}
+
+ipcMain.on('config', (event, config) => {
+    updateConfig(config);
+});
+
 if (app.makeSingleInstance((argv, wd) => launch(argv.slice(2), wd)))
     app.quit();
 
@@ -281,6 +313,9 @@ function onMenuClickHandler(menuItem: Electron.MenuItem, win: Electron.BrowserWi
     switch (menuItem.label) {
         case 'Open File…':
             launchWithDialog();
+            break;
+        case 'Preferences…':
+            showPreferences();
             break;
         default:
             if (win && windows[win.id])

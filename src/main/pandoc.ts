@@ -2,12 +2,11 @@ import {Readable} from 'stream';
 import * as path from 'path';
 import * as child_process from 'child_process';
 
+import {getConfig} from './config.js';
 
-const PANDOC_BIN = 'pandoc';
+
 const PANDOC_ARGS = [
-    '--from=markdown+pipe_tables',
-    '--latex-engine=xelatex',
-    '--filter=/Users/jason/local/bin/mark_filter',  // FIXME
+    '--to=html',
     '--mathjax',
     '--toc',
     '--standalone', `--template=${path.resolve(__dirname, '../../template.html')}`,
@@ -21,7 +20,12 @@ export interface RenderResult {
 
 export function render(filename: string): Promise<RenderResult> {
     return new Promise(resolve => {
-        const worker = child_process.spawn(PANDOC_BIN, [filename].concat(PANDOC_ARGS));
+        const config = getConfig();
+        const userArgs = config.extraArgs.split('\n').filter(x => !!x);
+
+        const worker = child_process.spawn(
+            config.pandoc, [filename].concat(PANDOC_ARGS).concat(userArgs),
+            {cwd: path.dirname(filename)});
         let stdout = '', stderr = '';
         worker.stdout.on('data', data => { stdout += data; });
         worker.stderr.on('data', data => { stderr += data; });
