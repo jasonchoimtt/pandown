@@ -7,7 +7,11 @@
 </head>
 <body>
     <article id="main"></article>
-    <div id="toc-toggle">TOC</div>
+    <div id="bar">
+        <span id="toc-toggle">TOC</span>
+        <span id="loading">...</span>
+    </div>
+    <pre id="error"></pre>
 
     <script src="../../node_modules/mathjax/MathJax.js"></script>
     <script>
@@ -24,7 +28,7 @@
     <script src="../../node_modules/virtual-dom/dist/virtual-dom.js"></script>
     <script src="../../node_modules/vdom-as-json/dist/vdom-as-json.js"></script>
     <script src="../../node_modules/systemjs/dist/system.js"></script>
-    <script src="../../node_modules/jsondiffpatch/public/build/jsondiffpatch-full.js"></script>
+    <script src="../../node_modules/jsondiffpatch/public/build/jsondiffpatch-full.min.js"></script>
     <script src="./system_config.js"></script>
 </body>
 </html>

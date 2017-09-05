@@ -36,6 +36,8 @@ tocToggle.addEventListener('click', () => {
 
 
 const main = document.getElementById('main')!;
+const loading = document.getElementById('loading')!;
+const error = document.getElementById('error')!;
 
 // We need to chime in when the text of a <. class="math"> tag is changed; so
 // here's an easy hack for that.
@@ -65,12 +67,25 @@ function reconcile(p: VPatch[]) {
     }]);
 }
 
+function reloadVisibleImages() {
+    const images = document.querySelectorAll('img[src]');
+    const vh = window.innerHeight;
+    const timestamp = Date.now();
+    for (const el of <HTMLImageElement[]><any>images) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= vh && rect.bottom >= 0 && el.src.substr(0, 5) == 'file:') {
+            el.src = el.src.split('?')[0] + '?timestamp=' + timestamp;
+        }
+    }
+}
+
 const defaultTitle = document.title;
 
 ipcRenderer.on('main', (event, message: Message) => {
     switch (message.type) {
         case 'patch':
             reconcile(vdomAsJson.fromJson(message.patch));
+            reloadVisibleImages();
             break;
         case 'state':
             JSONDiffPatch.patch(state.common, message.patch);
@@ -83,6 +98,15 @@ ipcRenderer.on('main', (event, message: Message) => {
 
 function runStateHooks() {
     document.title = state.common.basename || defaultTitle;
-    if (state.common.error)
+    if (state.common.error) {
+        error.classList.add('open');
         console.error(state.common.error);
+        error.textContent = state.common.error;
+    } else {
+        error.classList.remove('open');
+    }
+    if (state.common.rendering)
+        loading.classList.add('open');
+    else
+        loading.classList.remove('open');
 }

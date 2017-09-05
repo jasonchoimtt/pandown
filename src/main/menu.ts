@@ -82,6 +82,11 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
                     accelerator: 'CmdOrCtrl+R',
                     click: onClick
                 },
+                {
+                    label: 'Hard Reload',
+                    accelerator: 'CmdOrCtrl+Shift+R',
+                    click: onClick
+                },
                 { type: 'separator' },
                 { role: 'resetzoom' },
                 { role: 'zoomin' },

@@ -89,6 +89,7 @@ class PreviewWindow {
 
     focus() {
         this.renderer.focus();
+        this.renderIfChanged();
     }
 
     getFilename() {
@@ -152,7 +153,11 @@ class PreviewWindow {
         }));
 
         this.watcher = watch(filename);
-        this.watcher.on('change', this.queueRendering.bind(this));
+        this.watcher.on('change', (path, stats) => {
+            if (stats)
+                this.dispatch(state => ({...state, common: {...state.common, mtime: stats.mtime}}));
+            this.queueRendering();
+        });
         this.queueRendering();
 
         if (process.platform === 'darwin')
@@ -168,6 +173,19 @@ class PreviewWindow {
         } else if (!this.state.renderingQueued) {
             console.log('Queued rendering.');
             this.dispatch(state => ({...state, renderingQueued: true}));;
+        }
+    }
+
+    private renderIfChanged() {
+        let stat;
+        try {
+            stat = fs.statSync(this.state.common.filename!);
+        } catch (err) {}
+        if (stat) {
+            if (stat.mtime > this.state.common.mtime!) {
+                this.queueRendering();
+                this.dispatch(state => ({...state, common: {...state.common, mtime: stat.mtime}}));
+            }
         }
     }
 
@@ -203,7 +221,7 @@ class PreviewWindow {
         this.dispatch(state => ({...state, common: {...state.common, rendering: false}}));
     }
 
-    reload() {
+    hardReload() {
         this.queueRendering();
         this.dispatch(state => ({...state, currentTree: defaultTree}));
         this.sendToFrame({type: 'clear'});
@@ -213,7 +231,7 @@ class PreviewWindow {
         this.dispatch(state => ({
             ...state,
             renderingQueued: false,
-            common: {...state.common, filename: null, basename: null}
+            common: {...state.common, filename: null, basename: null, mtime: null}
         }));
 
         this.watcher.close();
@@ -227,7 +245,10 @@ class PreviewWindow {
                 this.connectionReady.then(() => this.frame.toggleDevTools());
                 break;
             case 'Reload':
-                this.reload();
+                this.queueRendering();
+                break;
+            case 'Hard Reload':
+                this.hardReload();
                 break;
         }
     }

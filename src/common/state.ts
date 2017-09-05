@@ -4,6 +4,7 @@ export interface CommonState {
     basename: string | null;
     rendering: boolean;
     error: string | null;
+    mtime: Date | null;
 }
 
 export const defaultCommonState: CommonState = {
@@ -11,6 +12,7 @@ export const defaultCommonState: CommonState = {
     basename: null,
     rendering: false,
     error: null,
+    mtime: null,
 };
 
 // Frame -> Main actions
