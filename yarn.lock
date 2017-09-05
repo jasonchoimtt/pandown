@@ -8,21 +8,11 @@
   dependencies:
     "@types/node" "*"
 
-"@types/electron@^1.4.31":
-  version "1.6.10"
-  resolved "https://registry.yarnpkg.com/@types/electron/-/electron-1.6.10.tgz#7e87888ed3888767cca68e92772c2c8ea46bc873"
-  dependencies:
-    electron "*"
-
 "@types/mathjax@0.0.31":
   version "0.0.31"
   resolved "https://registry.yarnpkg.com/@types/mathjax/-/mathjax-0.0.31.tgz#6618b6555082311edbe0ad34cd93408eb43370da"
 
-"@types/node@*", "@types/node@^8.0.24":
-  version "8.0.26"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.26.tgz#4d58be925306fd22b1141085535a0268b8beb189"
-
-"@types/node@^7.0.0":
+"@types/node@*", "@types/node@^7.0.0", "@types/node@^7.0.18":
   version "7.0.43"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-7.0.43.tgz#a187e08495a075f200ca946079c914e1a5fe962c"
 
@@ -532,11 +522,11 @@ electron-packager@^8.5.0:
     sanitize-filename "^1.6.0"
     semver "^5.3.0"
 
-electron@*, electron@^1.4.14:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-1.8.0.tgz#896f429b1e664f496f62b9cc7ee6a67a71375f31"
+electron@^1.7.5:
+  version "1.7.5"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-1.7.5.tgz#065a3102bf8b87102df50c50985fefe6c569045b"
   dependencies:
-    "@types/node" "^8.0.24"
+    "@types/node" "^7.0.18"
     electron-download "^3.0.1"
     extract-zip "^1.0.3"
 
