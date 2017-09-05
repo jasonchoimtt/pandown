@@ -13,6 +13,9 @@
 </head>
 <body>
     <webview src="../frame/index.html" preload="../frame/preload.js"></webview>
-    <script src="./index.js"></script>
+    <script>
+        // This imports index.js as a module instead of a script.
+        require('./index.js');
+    </script>
 </body>
 </html>

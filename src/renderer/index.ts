@@ -2,7 +2,7 @@ import {ipcRenderer, remote} from 'electron';
 
 
 const currentId = remote.getCurrentWebContents().id;
-const webview = <Electron.WebViewElement>document.querySelector('webview')!;
+const webview = <Electron.WebviewTag>document.querySelector('webview')!;
 
 webview.addEventListener('dom-ready', firstLoadHandler);
 function firstLoadHandler() {
