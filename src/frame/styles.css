@@ -2,6 +2,7 @@ body {
     font-family: "PT Serif", "Droid Serif", serif;
     max-width: 600px;
     margin: 0 auto 90vh auto;
+    transition: background-color 0.1s;
 }
 article { margin: 0 16px; }
 h1 { font-size: 28px; }
@@ -125,3 +126,15 @@ img {
     height: 15px;
     width: 40%;
 }
+
+/* Dark mode */
+body.dark {
+    background-color: #222;
+    color: #ddd;
+}
+body.dark #TOC { background-color: #333; color: #ddd; }
+body.dark #toc-toggle { background-color: #67f; }
+body.dark td, th { border-color: #666; }
+body.dark a:hover, a:active { color: #e61; }
+body.dark a, a:visited { color: #67f; }
+body.dark .MathJax_Preview { background-color: #333; }

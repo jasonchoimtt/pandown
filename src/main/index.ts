@@ -84,6 +84,7 @@ class PreviewWindow {
         this.renderer.on('close', this.onClosed.bind(this));
 
         this.state = defaultMainState;
+        // Update the state with the config object
         this.setConfig(getConfig());
     }
 
@@ -239,10 +240,18 @@ class PreviewWindow {
             this.renderer.setRepresentedFilename('');
     }
 
+    toggleDarkMode() {
+        const darkMode = this.state.common.config!.darkMode;
+        updateConfig({...getConfig(), darkMode: !darkMode});
+    }
+
     onMenuClick(menuItem: Electron.MenuItem, event: Event) {
         switch (menuItem.label) {
             case 'Toggle Developer Tools (Frame)':
                 this.connectionReady.then(() => this.frame.toggleDevTools());
+                break;
+            case 'Toggle Dark Mode':
+                this.toggleDarkMode();
                 break;
             case 'Reload':
                 this.queueRendering();

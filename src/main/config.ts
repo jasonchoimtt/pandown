@@ -6,11 +6,13 @@ import * as path from 'path';
 export interface Config {
     pandoc: string;
     extraArgs: string;
+    darkMode: boolean;
 }
 
 export const defaultConfig: Config = {
     pandoc: 'pandoc',
-    extraArgs: ''
+    extraArgs: '',
+    darkMode: false
 };
 
 let config: Config | null = null;

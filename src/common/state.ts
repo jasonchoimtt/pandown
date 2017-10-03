@@ -1,3 +1,6 @@
+import {Config} from '../main/config.js';
+
+
 // Main -> Frame states
 export interface CommonState {
     filename: string | null;
@@ -5,6 +8,7 @@ export interface CommonState {
     rendering: boolean;
     error: string | null;
     mtime: Date | null;
+    config: Config | null;
 }
 
 export const defaultCommonState: CommonState = {
@@ -13,6 +17,7 @@ export const defaultCommonState: CommonState = {
     rendering: false,
     error: null,
     mtime: null,
+    config: null
 };
 
 // Frame -> Main actions

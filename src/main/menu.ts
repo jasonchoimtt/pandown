@@ -78,6 +78,12 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
                 },
                 { type: 'separator' },
                 {
+                    label: 'Toggle Dark Mode',
+                    accelerator: 'CmdOrCtrl+D',
+                    click: onClick
+                },
+                { type: 'separator' },
+                {
                     label: 'Reload',
                     accelerator: 'CmdOrCtrl+R',
                     click: onClick

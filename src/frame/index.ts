@@ -35,6 +35,7 @@ tocToggle.addEventListener('click', () => {
 });
 
 
+const body = document.querySelector('body')!;
 const main = document.getElementById('main')!;
 const loading = document.getElementById('loading')!;
 const error = document.getElementById('error')!;
@@ -97,6 +98,7 @@ ipcRenderer.on('main', (event, message: Message) => {
 });
 
 function runStateHooks() {
+    console.debug(state);
     document.title = state.common.basename || defaultTitle;
     if (state.common.error) {
         error.classList.add('open');
@@ -109,4 +111,9 @@ function runStateHooks() {
         loading.classList.add('open');
     else
         loading.classList.remove('open');
+
+    if (state.common.config!.darkMode)
+        body.classList.add('dark');
+    else
+        body.classList.remove('dark');
 }
