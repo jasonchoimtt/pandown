@@ -30,7 +30,11 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
         {
             label: 'File',
             submenu: [
-                { label: 'Open File…', accelerator: 'Cmd+O', click: onClick },
+                {
+                    label: 'Open File…',
+                    accelerator: 'CmdOrCtrl+O',
+                    click: onClick
+                },
                 { type: 'separator' },
             ]
         },
@@ -46,6 +50,8 @@ export function createApplicationMenu(onClick: OnMenuClickHandler): Electron.Men
                 { role: 'pasteandmatchstyle' },
                 { role: 'delete' },
                 { role: 'selectall' },
+                { type: 'separator' },
+                { label: 'Find', accelerator: 'CmdOrCtrl+F', click: onClick },
                 { type: 'separator' },
                 ...(process.platform === 'darwin' ? [
                     {

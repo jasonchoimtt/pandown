@@ -3,16 +3,16 @@
 <head>
     <meta encoding="utf-8">
     <title>Pandown</title>
-    <style>
-        webview {
-            position: fixed;
-            top: 0; bottom: 0;
-            left: 0; right: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <webview src="../frame/index.html" preload="../frame/preload.js"></webview>
+    <div id="find-box" style="display: none">
+        <input id="find" placeholder="Find in page">
+        <button id="find-prev">&larr;</button>
+        <button id="find-next">&rarr;</button>
+        <button id="find-close">x</button>
+    </div>
     <script>
         // This imports index.js as a module instead of a script.
         require('./index.js');

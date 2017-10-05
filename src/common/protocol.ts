@@ -14,3 +14,11 @@ export interface MessageClear {
 }
 
 export type Message = MessagePatch | MessageState | MessageClear;
+
+// main -> renderer
+export interface MessageFind {
+    type: 'find';
+    value: boolean;
+}
+
+export type RendererMessage = MessageFind;

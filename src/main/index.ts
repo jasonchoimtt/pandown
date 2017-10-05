@@ -42,6 +42,7 @@ function updateConfig(config: Config) {
 class PreviewWindow {
     private state: MainState;
     private renderer: Electron.BrowserWindow;
+    private rendererContents: Electron.WebContents;
     private frame: Electron.WebContents;
     private id: number;
 
@@ -67,6 +68,7 @@ class PreviewWindow {
                 darkMode: config.darkMode
             }
         }));
+        this.rendererContents = this.renderer.webContents;
 
         this.id = this.renderer.id;
         windows[this.id] = this;
@@ -252,6 +254,10 @@ class PreviewWindow {
         updateConfig({...getConfig(), darkMode: !darkMode});
     }
 
+    find() {
+        this.rendererContents.send('main', {type: 'find', value: true});
+    }
+
     onMenuClick(menuItem: Electron.MenuItem, event: Event) {
         switch (menuItem.label) {
             case 'Toggle Developer Tools (Frame)':
@@ -265,6 +271,9 @@ class PreviewWindow {
                 break;
             case 'Hard Reload':
                 this.hardReload();
+                break;
+            case 'Find':
+                this.find();
                 break;
         }
     }
