@@ -49,16 +49,23 @@ class PreviewWindow {
     private connectionReady: Promise<void>;
 
     constructor() {
+        const config = getConfig();
         this.renderer = new BrowserWindow({
             width: 700,
             height: 768,
             minWidth: 300,
-            minHeight: 200
+            minHeight: 200,
+            backgroundColor: config.darkMode ? '#222' : '#fff'
         });
         this.renderer.loadURL(url.format({
             pathname: path.resolve(__dirname, '../renderer/index.html'),
             protocol: 'file:',
-            slashes: true
+            slashes: true,
+            query: {
+                // Pass darkMode in query so that the background can be set
+                // in the renderer before the frame is loaded.
+                darkMode: config.darkMode
+            }
         }));
 
         this.id = this.renderer.id;
@@ -85,7 +92,7 @@ class PreviewWindow {
 
         this.state = defaultMainState;
         // Update the state with the config object
-        this.setConfig(getConfig());
+        this.setConfig(config);
     }
 
     focus() {

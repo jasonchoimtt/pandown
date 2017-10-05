@@ -4,6 +4,9 @@ body {
     margin: 0 auto 90vh auto;
     transition: background-color 0.1s;
 }
+body.ready {
+    background-color: #fff; /* Sync with PreviewWindow.constructor */
+}
 article { margin: 0 16px; }
 h1 { font-size: 28px; }
 a, a:hover, a:active, a:visited {
@@ -129,7 +132,7 @@ img {
 
 /* Dark mode */
 body.dark {
-    background-color: #222;
+    background-color: #222; /* Sync with PreviewWindow.constructor */
     color: #ddd;
 }
 body.dark #TOC { background-color: #333; color: #ddd; }

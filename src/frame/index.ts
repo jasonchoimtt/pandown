@@ -40,6 +40,8 @@ const main = document.getElementById('main')!;
 const loading = document.getElementById('loading')!;
 const error = document.getElementById('error')!;
 
+body.classList.add('ready');
+
 // We need to chime in when the text of a <. class="math"> tag is changed; so
 // here's an easy hack for that.
 const toCheck: Text[] = [];
