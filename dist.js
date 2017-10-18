@@ -16,6 +16,18 @@ packager({
 	platform: ['darwin'],
     overwrite: true,
     ignore: path => FILES.indexOf(path.split('/')[0]) !== -1,
+    extendInfo: {
+        'CFBundleDocumentTypes': [
+            {
+                'CFBundleTypeName': 'Markdown',
+                'CFBundleTypeExtensions': ['md', 'markdown'],
+                'CFBundleTypeMIMETypes': ['text/x-markdown'],
+                'LSItemContentTypes': ['net.daringfireball.markdown'],
+                'LSTypeIsPackage': 0,
+                'NSDocumentClass': 'MPDocument',
+            }
+        ]
+    }
 }, (err, appPaths) => {
     if (err)
         throw err;
