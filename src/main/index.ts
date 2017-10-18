@@ -383,6 +383,7 @@ app.on('activate', () => {
 
 app.on('open-file', (event, path) => {
     readyPromise.then(() => launch([path], process.cwd()));
+    event.preventDefault();
 });
 
 function onMenuClickHandler(menuItem: Electron.MenuItem, win: Electron.BrowserWindow,
