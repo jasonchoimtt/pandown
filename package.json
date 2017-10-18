@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@types/virtual-dom": "^2.0.27",
+    "@types/yargs": "^8.0.2",
     "chokidar": "^1.6.1",
     "fsevents": "^1.1.2",
     "html-to-vdom": "^0.7.0",
@@ -32,6 +33,7 @@
     "mathjax": "^2.7.0",
     "systemjs": "^0.20.19",
     "vdom-as-json": "^1.0.10",
-    "virtual-dom": "^2.1.1"
+    "virtual-dom": "^2.1.1",
+    "yargs": "^9.0.1"
   }
 }

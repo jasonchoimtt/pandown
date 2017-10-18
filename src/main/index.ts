@@ -8,6 +8,7 @@ import {watch, FSWatcher} from 'chokidar';
 import * as virtualDom from 'virtual-dom';
 import * as vdomAsJson from 'vdom-as-json';
 import {create as createJSONDiffPatch} from 'jsondiffpatch';
+import * as yargs from 'yargs';
 
 import {render} from './pandoc.js';
 import {createApplicationMenu} from './menu.js';
@@ -279,8 +280,19 @@ class PreviewWindow {
     }
 }
 
-function launch(files: string[], workingDirectory: string) {
-    for (const rel of files) {
+function launch(argv: string[], workingDirectory: string) {
+    const args = yargs
+        .strict()
+        .usage('pandown <file> -- Markdown live preview')
+        .option('dark-mode', {boolean: true, description: 'Use dark mode'})
+        .option('light-mode', {boolean: true, description: 'Use light mode'})
+        .parse(argv);
+
+    if (args['dark-mode'] || args['light-mode']) {
+        updateConfig({...getConfig(), darkMode: args['dark-mode']});
+    }
+
+    for (const rel of args._) {
         const filename = path.resolve(workingDirectory, rel);
         let opened = false;
         for (const key of Object.keys(windows)) {
