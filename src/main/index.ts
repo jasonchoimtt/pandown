@@ -17,6 +17,7 @@ import {MainState, defaultMainState} from './state.js';
 import {defaultTree} from './html.js';
 import {Message} from '../common/protocol.js';
 import {getConfig, setConfig, Config} from './config.js';
+import {MarkdownParser} from './parsing.js';
 
 
 const JSONDiffPatch: {
@@ -48,6 +49,7 @@ class PreviewWindow {
     private id: number;
 
     private watcher: FSWatcher;
+    private parser: MarkdownParser;
     private connectionReady: Promise<void>;
 
     constructor() {
@@ -140,6 +142,13 @@ class PreviewWindow {
         });
     }
 
+    private onParseComplete() {
+        this.dispatch(state => ({
+            ...state,
+            common: {...state.common, title: this.parser.getTitle()}
+        }));
+    }
+
     private dispatch(fn: (state: MainState) => MainState) {
         const oldState = this.state;
         const newState = fn(this.state);
@@ -168,8 +177,13 @@ class PreviewWindow {
             if (stats)
                 this.dispatch(state => ({...state, common: {...state.common, mtime: stats.mtime}}));
             this.queueRendering();
+            this.parser.queueParsing();
         });
+
+        this.parser = new MarkdownParser(filename, this.onParseComplete.bind(this));
+
         this.queueRendering();
+        this.parser.queueParsing();
 
         if (process.platform === 'darwin')
             this.renderer.setRepresentedFilename(filename);
@@ -340,7 +354,10 @@ ipcMain.on('config', (event, config) => {
     updateConfig(config);
 });
 
-if (app.makeSingleInstance((argv, wd) => launch(argv.slice(2), wd)))
+if (app.makeSingleInstance((argv, wd) => {
+    argv = argv.slice(argv[0].toLowerCase().indexOf('pandown') !== -1 ? 1 : 2);
+    launch(argv.slice(2), wd)
+}))
     app.quit();
 
 let readyPromiseResolve: () => void;
@@ -348,7 +365,9 @@ const readyPromise = new Promise(r => readyPromiseResolve = r);
 
 app.on('ready', () => {
     Menu.setApplicationMenu(createApplicationMenu(onMenuClickHandler));
-    launch(process.argv.slice(2), process.cwd());
+    let argv = process.argv;
+    argv = argv.slice(argv[0].toLowerCase().indexOf('pandown') !== -1 ? 1 : 2);
+    launch(argv, process.cwd());
     readyPromiseResolve();
 });
 

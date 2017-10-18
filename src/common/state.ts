@@ -9,6 +9,7 @@ export interface CommonState {
     error: string | null;
     mtime: Date | null;
     config: Config | null;
+    title: string | null;
 }
 
 export const defaultCommonState: CommonState = {
@@ -17,7 +18,8 @@ export const defaultCommonState: CommonState = {
     rendering: false,
     error: null,
     mtime: null,
-    config: null
+    config: null,
+    title: null
 };
 
 // Frame -> Main actions

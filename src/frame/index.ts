@@ -101,7 +101,11 @@ ipcRenderer.on('main', (event, message: Message) => {
 
 function runStateHooks() {
     console.debug(state);
-    document.title = state.common.basename || defaultTitle;
+    if (state.common.title) {
+        document.title = state.common.title + ' - ' + (state.common.basename || defaultTitle);
+    } else {
+        document.title = state.common.basename || defaultTitle;
+    }
     if (state.common.error) {
         error.classList.add('open');
         console.error(state.common.error);

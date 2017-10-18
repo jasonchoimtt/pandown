@@ -24,11 +24,15 @@
     "typescript": "^2.1.4"
   },
   "dependencies": {
+    "@types/commonmark": "^0.27.0",
+    "@types/js-yaml": "^3.9.1",
     "@types/virtual-dom": "^2.0.27",
     "@types/yargs": "^8.0.2",
     "chokidar": "^1.6.1",
+    "commonmark": "^0.28.1",
     "fsevents": "^1.1.2",
     "html-to-vdom": "^0.7.0",
+    "js-yaml": "^3.10.0",
     "jsondiffpatch": "^0.2.4",
     "mathjax": "^2.7.0",
     "systemjs": "^0.20.19",
