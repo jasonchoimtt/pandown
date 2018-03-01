@@ -122,4 +122,7 @@ function runStateHooks() {
         body.classList.add('dark');
     else
         body.classList.remove('dark');
+
+    // Different from body
+    document.documentElement.dispatchEvent(new CustomEvent('update'));
 }

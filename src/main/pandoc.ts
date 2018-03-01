@@ -11,6 +11,7 @@ const PANDOC_ARGS = [
     '--toc',
     '--standalone', `--template=${path.resolve(__dirname, '../../template.html')}`,
     '--output=-',
+    '--metadata=pandown-preview',
 ];
 
 export interface RenderResult {
